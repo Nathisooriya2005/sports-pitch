@@ -2,8 +2,8 @@ import React, { useState, useEffect, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://spsp-u0cc.onrender.com';
-const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || 'https://spsp-u0cc.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sports-pitch.onrender.com';
+const PAYMENT_API_URL = import.meta.env.VITE_PAYMENT_API_URL || 'https://sports-pitch.onrender.com';
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
