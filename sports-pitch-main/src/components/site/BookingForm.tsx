@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { addBooking } from "@/lib/booking-store";
 import type { TimeBatch } from "@/lib/booking-store";
 
-const API_BASE_URL = "https://spsp-3.onrender.com/api/bookings";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://spsp-u0cc.onrender.com/api/bookings';
 const GAMES = ["Cricket", "Badminton", "Karate", "Kabaddi"] as const;
 const TIME_SLOTS = [
   { slot: "8-9", batch: "morning" },
