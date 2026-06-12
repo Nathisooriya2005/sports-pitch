@@ -201,27 +201,34 @@ exports.createMonthlyRecords = async (req, res) => {
 // Send payment reminder SMS
 exports.sendReminder = async (req, res) => {
   try {
+    console.log('[sendReminder] Request received:', req.body);
     const { customerId, month, year, phone } = req.body;
 
     if (!customerId) {
+      console.log('[sendReminder] Missing customerId');
       return res.status(400).json({
         success: false,
         error: 'Customer ID is required'
       });
     }
 
+    console.log('[sendReminder] Finding customer:', customerId);
     const customer = await Customer.findById(customerId);
     if (!customer) {
+      console.log('[sendReminder] Customer not found');
       return res.status(404).json({
         success: false,
         error: 'Customer not found'
       });
     }
+    console.log('[sendReminder] Customer found:', customer.name, customer.phone);
 
     const currentDate = new Date();
     const targetMonth = month ? parseInt(month) : currentDate.getMonth() + 1;
     const targetYear = year ? parseInt(year) : currentDate.getFullYear();
+    console.log('[sendReminder] Target month/year:', targetMonth, targetYear);
 
+    console.log('[sendReminder] Finding payment record');
     const payment = await Payment.findOne({
       customerId,
       month: targetMonth,
@@ -229,31 +236,37 @@ exports.sendReminder = async (req, res) => {
     });
 
     if (!payment) {
+      console.log('[sendReminder] Payment record not found');
       return res.status(404).json({
         success: false,
         error: 'Payment record not found'
       });
     }
+    console.log('[sendReminder] Payment record found');
 
     // Use phone from request body if provided, otherwise use customer's phone
     const phoneToUse = phone || customer.phone;
+    console.log('[sendReminder] Phone to use:', phoneToUse);
 
     // Generate WhatsApp message URL
     const message = `Hi ${customer.name}, your sports booking payment for this month is pending. Please complete the payment.`;
     const whatsappUrl = `https://wa.me/91${phoneToUse}?text=${encodeURIComponent(message)}`;
+    console.log('[sendReminder] WhatsApp URL generated:', whatsappUrl);
 
     // Update reminder status
     payment.reminderSent = true;
     payment.reminderSentAt = new Date();
     await payment.save();
+    console.log('[sendReminder] Payment record updated');
 
     res.json({
       success: true,
       whatsappUrl,
       message: 'Reminder sent successfully'
     });
+    console.log('[sendReminder] Response sent successfully');
   } catch (error) {
-    console.error('Error sending reminder:', error);
+    console.error('[sendReminder] Error:', error);
     res.status(500).json({
       success: false,
       error: error.message
