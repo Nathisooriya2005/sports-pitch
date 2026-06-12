@@ -204,12 +204,12 @@ const api = {
       throw error;
     }
   },
-  sendReminder: async (customerId, month) => {
+  sendReminder: async (customerId, month, phone) => {
     try {
       const response = await fetch(`${PAYMENT_API_URL}/api/payment/payment/send-reminder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId, month }),
+        body: JSON.stringify({ customerId, month, phone }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -850,15 +850,21 @@ function PaymentManagement() {
 
   const handleTogglePayment = async (customerId, currentStatus) => {
     const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
+    // Update local state immediately for instant feedback
+    setCustomers(customers.map(c => c._id === customerId ? { ...c, paymentStatus: newStatus } : c));
     try {
       const response = await api.updatePaymentStatus(customerId, newStatus, selectedMonth);
       if (response.success) {
         fetchCustomers();
         // Trigger dashboard refresh by dispatching a custom event
         window.dispatchEvent(new CustomEvent('paymentUpdated'));
+      } else {
+        // Revert if API call fails
+        fetchCustomers();
       }
     } catch (error) {
       console.error('Error updating payment status');
+      fetchCustomers();
     }
   };
 
@@ -875,9 +881,9 @@ function PaymentManagement() {
     }
   };
 
-  const handleSendReminder = async (customerId) => {
+  const handleSendReminder = async (customerId, phone) => {
     try {
-      const response = await api.sendReminder(customerId, selectedMonth);
+      const response = await api.sendReminder(customerId, selectedMonth, phone);
       if (response.success && response.whatsappUrl) {
         window.open(response.whatsappUrl, '_blank');
         fetchCustomers();
@@ -1004,7 +1010,7 @@ function PaymentManagement() {
                 fontSize: '14px'
               }}
             >
-              + Add Customer
+              + Add Player
             </button>
             <button
               onClick={handleCreateMonthlyRecords}
@@ -1071,11 +1077,11 @@ function PaymentManagement() {
           </div>
         </div>
 
-        {/* Add Customer Modal */}
+        {/* Add Player Modal */}
         {showAddCustomer && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
             <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Add New Customer</h3>
+              <h3 style={{ marginTop: 0, marginBottom: '20px' }}>Add New Player</h3>
               <form onSubmit={handleAddCustomer}>
                 <div style={{ marginBottom: '15px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: '#333' }}>Name:</label>
@@ -1103,9 +1109,10 @@ function PaymentManagement() {
                     {['Badminton', 'Karate', 'Cricket', 'Kabaddi'].map(sport => (
                       <label key={sport} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <input
-                          type="checkbox"
-                          checked={newCustomer.sports.includes(sport)}
-                          onChange={() => handleSportToggle(sport)}
+                          type="radio"
+                          name="sport"
+                          checked={newCustomer.sports?.length === 1 && newCustomer.sports[0] === sport}
+                          onChange={() => setNewCustomer({ ...newCustomer, sports: [sport] })}
                         />
                         {sport}
                       </label>
@@ -1124,7 +1131,7 @@ function PaymentManagement() {
                     type="submit"
                     style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
                   >
-                    Add Customer
+                    Add Player
                   </button>
                 </div>
               </form>
@@ -1191,7 +1198,7 @@ function PaymentManagement() {
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {customer.paymentStatus === 'Unpaid' && (
                           <button
-                            onClick={() => handleSendReminder(customer._id)}
+                            onClick={() => handleSendReminder(customer._id, customer.phone)}
                             style={{
                               backgroundColor: '#ffc107',
                               color: '#333',
