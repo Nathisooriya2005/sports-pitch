@@ -143,9 +143,9 @@ const api = {
     }
   },
   // Payment API
-  getCustomersWithPayments: async (filter, month, year) => {
+  getCustomersWithPayments: async (filter, month) => {
     try {
-      const url = `${PAYMENT_API_URL}/api/payment/customers?filter=${filter || ''}&month=${month || ''}&year=${year || ''}`;
+      const url = `${PAYMENT_API_URL}/api/payment/customers?filter=${filter || ''}&month=${month || ''}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -172,12 +172,12 @@ const api = {
       throw error;
     }
   },
-  updatePaymentStatus: async (customerId, status, month, year) => {
+  updatePaymentStatus: async (customerId, status, month) => {
     try {
       const response = await fetch(`${PAYMENT_API_URL}/api/payment/payment/update-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId, status, month, year }),
+        body: JSON.stringify({ customerId, status, month }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -188,12 +188,12 @@ const api = {
       throw error;
     }
   },
-  createMonthlyRecords: async (month, year) => {
+  createMonthlyRecords: async (month) => {
     try {
       const response = await fetch(`${PAYMENT_API_URL}/api/payment/payment/create-monthly-records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month, year }),
+        body: JSON.stringify({ month }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -204,12 +204,12 @@ const api = {
       throw error;
     }
   },
-  sendReminder: async (customerId, month, year) => {
+  sendReminder: async (customerId, month) => {
     try {
       const response = await fetch(`${PAYMENT_API_URL}/api/payment/payment/send-reminder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId, month, year }),
+        body: JSON.stringify({ customerId, month }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -234,12 +234,12 @@ const api = {
       throw error;
     }
   },
-  updatePaymentAmount: async (customerId, amount, month, year) => {
+  updatePaymentAmount: async (customerId, amount, month) => {
     try {
       const response = await fetch(`${PAYMENT_API_URL}/api/payment/payment/update-amount`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId, amount, month, year }),
+        body: JSON.stringify({ customerId, amount, month }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -250,9 +250,9 @@ const api = {
       throw error;
     }
   },
-  getPaymentStats: async (year) => {
+  getPaymentStats: async () => {
     try {
-      const url = `${PAYMENT_API_URL}/api/payment/payment/stats?year=${year || ''}`;
+      const url = `${PAYMENT_API_URL}/api/payment/payment/stats`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -263,11 +263,10 @@ const api = {
       throw error;
     }
   },
-  getRevenueStats: async (month, year, startDate, endDate) => {
+  getRevenueStats: async (month, startDate, endDate) => {
     try {
       const params = new URLSearchParams();
       if (month) params.append('month', month);
-      if (year) params.append('year', year);
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       const url = `${PAYMENT_API_URL}/api/payment/payment/revenue-stats?${params.toString()}`;
@@ -291,11 +290,11 @@ function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (credentials.username === 'sports pitch' && credentials.password === 'sportspitch@dreamturf') {
+    if (credentials.username === 'admin' && credentials.password === 'admin1234') {
       localStorage.setItem('adminAuthenticated', 'true');
       navigate('/dashboard');
     } else {
-      setError('Invalid credentials. Use sports pitch / sportspitch@dreamturf');
+      setError('Invalid credentials. Use admin / admin1234');
     }
   };
 
@@ -457,7 +456,6 @@ function Dashboard() {
     yearlyRevenue: [],
     growthRate: 0
   });
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -471,7 +469,7 @@ function Dashboard() {
       fetchRevenueStats();
     }, 5000); // Auto-update every 5 seconds
     return () => clearInterval(interval);
-  }, [selectedYear]);
+  }, []);
 
   // Listen for payment updates from payment section
   useEffect(() => {
@@ -482,7 +480,7 @@ function Dashboard() {
     };
     window.addEventListener('paymentUpdated', handlePaymentUpdate);
     return () => window.removeEventListener('paymentUpdated', handlePaymentUpdate);
-  }, [selectedYear]);
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -505,7 +503,7 @@ function Dashboard() {
 
   const fetchPaymentStats = async () => {
     try {
-      const response = await api.getPaymentStats(selectedYear);
+      const response = await api.getPaymentStats();
       if (response?.success && response?.stats) {
         setPaymentStats(response.stats);
       }
@@ -516,7 +514,7 @@ function Dashboard() {
 
   const fetchRevenueStats = async () => {
     try {
-      const response = await api.getRevenueStats(null, selectedYear);
+      const response = await api.getRevenueStats(null);
       if (response?.success && response?.stats) {
         setRevenueStats(response.stats);
       }
@@ -572,15 +570,6 @@ function Dashboard() {
         <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h2 style={{ margin: 0, color: '#333' }}>Dashboard Overview</h2>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '14px' }}
-            >
-              <option value={2024}>2024</option>
-              <option value={2025}>2025</option>
-              <option value={2026}>2026</option>
-            </select>
             <button
               onClick={downloadToGoogleSheets}
               className="admin-button"
@@ -839,16 +828,15 @@ function PaymentManagement() {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', sports: [] });
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCustomers();
-  }, [filter, selectedMonth, selectedYear]);
+  }, [filter, selectedMonth]);
 
   const fetchCustomers = async () => {
     try {
-      const response = await api.getCustomersWithPayments(filter, selectedMonth, selectedYear);
+      const response = await api.getCustomersWithPayments(filter, selectedMonth);
       if (response?.success && response?.customers) {
         setCustomers(response.customers);
         setStats(response?.stats || { totalCustomers: 0, totalPaid: 0, totalUnpaid: 0, month: 0, year: 0 });
@@ -863,7 +851,7 @@ function PaymentManagement() {
   const handleTogglePayment = async (customerId, currentStatus) => {
     const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
     try {
-      const response = await api.updatePaymentStatus(customerId, newStatus, selectedMonth, selectedYear);
+      const response = await api.updatePaymentStatus(customerId, newStatus, selectedMonth);
       if (response.success) {
         fetchCustomers();
         // Trigger dashboard refresh by dispatching a custom event
@@ -876,7 +864,7 @@ function PaymentManagement() {
 
   const handleUpdateAmount = async (customerId, amount) => {
     try {
-      const response = await api.updatePaymentAmount(customerId, amount, selectedMonth, selectedYear);
+      const response = await api.updatePaymentAmount(customerId, amount, selectedMonth);
       if (response.success) {
         fetchCustomers();
         // Trigger dashboard refresh by dispatching a custom event
@@ -889,7 +877,7 @@ function PaymentManagement() {
 
   const handleSendReminder = async (customerId) => {
     try {
-      const response = await api.sendReminder(customerId, selectedMonth, selectedYear);
+      const response = await api.sendReminder(customerId, selectedMonth);
       if (response.success && response.whatsappUrl) {
         window.open(response.whatsappUrl, '_blank');
         fetchCustomers();
@@ -915,8 +903,8 @@ function PaymentManagement() {
 
   const handleCreateMonthlyRecords = async () => {
     try {
-      console.log('Downloading monthly report for month:', selectedMonth, 'year:', selectedYear);
-      const response = await api.getCustomersWithPayments('', selectedMonth, selectedYear);
+      console.log('Downloading monthly report for month:', selectedMonth);
+      const response = await api.getCustomersWithPayments('', selectedMonth);
       console.log('Response:', response);
       
       if (response?.success && response?.customers) {
@@ -949,11 +937,11 @@ function PaymentManagement() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `monthly_report_${monthName}_${selectedYear}.csv`;
+        a.download = `monthly_report_${monthName}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
         
-        alert(`Monthly report for ${monthName} ${selectedYear} downloaded successfully!`);
+        alert(`Monthly report for ${monthName} downloaded successfully!`);
       } else {
         alert('Error: ' + (response?.error || 'Unknown error'));
       }
