@@ -882,14 +882,28 @@ function PaymentManagement() {
   };
 
   const handleSendReminder = async (customerId, phone) => {
+    console.log('handleSendReminder called with:', customerId, phone);
     try {
+      if (!customerId) {
+        alert('Customer ID is missing');
+        return;
+      }
+      if (!phone) {
+        alert('Phone number is missing');
+        return;
+      }
+      console.log('Sending reminder to customer:', customerId, 'phone:', phone);
       const response = await api.sendReminder(customerId, selectedMonth, phone);
+      console.log('Reminder response:', response);
       if (response.success && response.whatsappUrl) {
         window.open(response.whatsappUrl, '_blank');
         fetchCustomers();
+      } else {
+        alert('Failed to send reminder: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error sending reminder');
+      console.error('Error sending reminder:', error);
+      alert('Error sending reminder: ' + error.message);
     }
   };
 
@@ -1201,7 +1215,11 @@ function PaymentManagement() {
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {customer.paymentStatus === 'Unpaid' && (
                           <button
-                            onClick={() => handleSendReminder(customer._id, customer.phone)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log('Send Reminder button clicked for customer:', customer._id, 'phone:', customer.phone);
+                              handleSendReminder(customer._id, customer.phone);
+                            }}
                             style={{
                               backgroundColor: '#ffc107',
                               color: '#333',
