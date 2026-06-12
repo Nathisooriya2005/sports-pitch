@@ -34,7 +34,7 @@ exports.getCustomersWithPayments = async (req, res) => {
         paymentStatus: payment ? payment.status : 'Unpaid',
         paymentId: payment ? payment._id : null,
         reminderSent: payment ? payment.reminderSent : false,
-        amount: payment ? payment.amount : 500
+        amount: payment ? payment.amount : 600
       };
     });
 
@@ -201,7 +201,7 @@ exports.createMonthlyRecords = async (req, res) => {
 // Send payment reminder SMS
 exports.sendReminder = async (req, res) => {
   try {
-    const { customerId, month, year } = req.body;
+    const { customerId, month, year, phone } = req.body;
 
     if (!customerId) {
       return res.status(400).json({
@@ -235,9 +235,12 @@ exports.sendReminder = async (req, res) => {
       });
     }
 
+    // Use phone from request body if provided, otherwise use customer's phone
+    const phoneToUse = phone || customer.phone;
+
     // Generate WhatsApp message URL
     const message = `Hi ${customer.name}, your sports booking payment for this month is pending. Please complete the payment.`;
-    const whatsappUrl = `https://wa.me/91${customer.phone}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/91${phoneToUse}?text=${encodeURIComponent(message)}`;
 
     // Update reminder status
     payment.reminderSent = true;

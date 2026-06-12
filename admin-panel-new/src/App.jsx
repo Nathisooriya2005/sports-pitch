@@ -1166,14 +1166,17 @@ function PaymentManagement() {
                     <td style={{ padding: '15px' }}>
                       <input
                         type="number"
-                        defaultValue={customer.amount || 500}
+                        defaultValue={customer.amount || 600}
                         onBlur={(e) => handleUpdateAmount(customer._id, e.target.value)}
+                        disabled={customer.paymentStatus === 'Paid'}
                         style={{
                           width: '80px',
                           padding: '6px',
                           border: '1px solid #ddd',
                           borderRadius: '4px',
-                          fontSize: '14px'
+                          fontSize: '14px',
+                          backgroundColor: customer.paymentStatus === 'Paid' ? '#f0f0f0' : 'white',
+                          cursor: customer.paymentStatus === 'Paid' ? 'not-allowed' : 'text'
                         }}
                       />
                     </td>
