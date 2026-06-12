@@ -1057,20 +1057,6 @@ function PaymentManagement() {
               </select>
             </div>
             <div>
-              <label style={{ marginRight: '10px', fontWeight: '600', color: '#333' }}>Year:</label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '14px' }}
-              >
-                <option value={2026}>2026</option>
-                <option value={2027}>2027</option>
-                <option value={2028}>2028</option>
-                <option value={2029}>2029</option>
-                <option value={2030}>2030</option>
-              </select>
-            </div>
-            <div>
               <label style={{ marginRight: '10px', fontWeight: '600', color: '#333' }}>Filter:</label>
               <select
                 value={filter}
