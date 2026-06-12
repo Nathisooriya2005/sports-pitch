@@ -186,7 +186,7 @@ export function deleteBooking(id: string) {
 
 // Admin auth (demo only)
 const ADMIN_KEY = "turfpro:admin";
-export const ADMIN_CREDS = { id: "admin", password: "admin123" };
+export const ADMIN_CREDS = { id: "admin", password: "admin1234" };
 
 export function adminLogin(id: string, password: string) {
   if (id === ADMIN_CREDS.id && password === ADMIN_CREDS.password) {
